@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Devotional color palette for pooja flowers */
+    --background: 35 25% 97%;
+    --foreground: 25 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Primary: Saffron/Orange - devotional */
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Maroon - sacred */
+    --secondary: 0 60% 40%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted: Soft cream */
+    --muted: 35 20% 90%;
+    --muted-foreground: 25 15% 45%;
+
+    /* Accent: Forest green - fresh, natural */
+    --accent: 145 60% 35%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 35 15% 85%;
+    --input: 35 15% 90%;
+    --ring: 25 95% 53%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens for devotional design */
+    --devotional-gold: 45 90% 60%;
+    --devotional-cream: 35 30% 95%;
+    --shadow-soft: 25 20% 80%;
+  }
+
+  .dark {
+    --background: 25 25% 8%;
+    --foreground: 35 15% 92%;
+
+    --card: 25 20% 12%;
+    --card-foreground: 35 15% 92%;
+
+    --popover: 25 20% 12%;
+    --popover-foreground: 35 15% 92%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 50% 35%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 25 15% 20%;
+    --muted-foreground: 35 10% 60%;
+
+    --accent: 145 50% 30%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 15% 25%;
+    --input: 25 15% 20%;
+    --ring: 25 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
