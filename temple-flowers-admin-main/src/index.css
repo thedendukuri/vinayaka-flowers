@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Vinayaka Pooja Flowers — Temple-inspired design system
+   All colors MUST be HSL. */
+
+@layer base {
+  :root {
+    /* Warm cream background */
+    --background: 38 50% 96%;
+    --foreground: 25 40% 20%;
+
+    /* Slightly darker cream for cards */
+    --card: 36 45% 92%;
+    --card-foreground: 25 40% 20%;
+
+    --popover: 38 50% 96%;
+    --popover-foreground: 25 40% 20%;
+
+    /* Saffron orange primary */
+    --primary: 28 90% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm beige secondary */
+    --secondary: 36 30% 88%;
+    --secondary-foreground: 25 40% 20%;
+
+    /* Muted warm tones */
+    --muted: 36 25% 90%;
+    --muted-foreground: 25 15% 50%;
+
+    /* Accent = saffron light */
+    --accent: 30 60% 90%;
+    --accent-foreground: 25 40% 20%;
+
+    /* Muted red for errors */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle light tan borders */
+    --border: 35 25% 85%;
+    --input: 35 25% 85%;
+    --ring: 28 90% 52%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar: cream */
+    --sidebar-background: 36 40% 93%;
+    --sidebar-foreground: 25 40% 20%;
+    --sidebar-primary: 28 90% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 50% 88%;
+    --sidebar-accent-foreground: 25 40% 20%;
+    --sidebar-border: 35 25% 85%;
+    --sidebar-ring: 28 90% 52%;
+
+    /* Custom tokens */
+    --saffron: 28 90% 52%;
+    --saffron-dark: 25 85% 44%;
+    --brown: 25 40% 20%;
+    --brown-light: 25 30% 35%;
+    --cream: 38 50% 96%;
+    --cream-dark: 36 45% 92%;
+    --success: 140 45% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  }
+}
