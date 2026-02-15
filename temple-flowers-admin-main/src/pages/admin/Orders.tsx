@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Eye, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, Trash2, ChevronLeft, ChevronRight, Download, Printer } from "lucide-react";
 import { format } from "date-fns";
 
 type OrderStatus = "Pending" | "Completed" | "Cancelled" | "Picked Up";
@@ -22,17 +23,28 @@ const statusColors: Record<OrderStatus, string> = {
   "Picked Up": "bg-brown/20 text-brown",
 };
 
+type SortableColumn = "created_at" | "pickup_date" | "customer_name" | "phone_number";
+
 const PAGE_SIZE = 10;
 
 const Orders = () => {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState("");
-  const [sortField, setSortField] = useState<"created_at" | "pickup_date">("created_at");
+  const [sortField, setSortField] = useState<SortableColumn>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
   const [viewOrder, setViewOrder] = useState<any | null>(null);
+
+  // Load filters from URL on mount
+  useEffect(() => {
+    const status = searchParams.get("status");
+    const date = searchParams.get("date");
+    if (status) setStatusFilter(status);
+    if (date) setDateFilter(date);
+  }, [searchParams]);
 
   const { data: orders = [] } = useQuery({
     queryKey: ["admin-orders"],
@@ -80,17 +92,114 @@ const Orders = () => {
   });
 
   filtered.sort((a, b) => {
-    const aVal = sortField === "created_at" ? new Date(a.created_at).getTime() : new Date(a.pickup_date).getTime();
-    const bVal = sortField === "created_at" ? new Date(b.created_at).getTime() : new Date(b.pickup_date).getTime();
-    return sortDir === "desc" ? bVal - aVal : aVal - bVal;
+    let aVal: string | number;
+    let bVal: string | number;
+
+    if (sortField === "created_at") {
+      aVal = new Date(a.created_at).getTime();
+      bVal = new Date(b.created_at).getTime();
+    } else if (sortField === "pickup_date") {
+      aVal = new Date(a.pickup_date).getTime();
+      bVal = new Date(b.pickup_date).getTime();
+    } else if (sortField === "customer_name") {
+      aVal = a.customer_name.toLowerCase();
+      bVal = b.customer_name.toLowerCase();
+    } else if (sortField === "phone_number") {
+      aVal = a.phone_number;
+      bVal = b.phone_number;
+    } else {
+      return 0;
+    }
+
+    if (typeof aVal === "string") {
+      return sortDir === "asc" ? aVal.localeCompare(bVal as string) : (bVal as string).localeCompare(aVal);
+    } else {
+      return sortDir === "desc" ? (bVal as number) - (aVal as number) : (aVal as number) - (bVal as number);
+    }
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const toggleSort = (field: "created_at" | "pickup_date") => {
+  const toggleSort = (field: SortableColumn) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortField(field); setSortDir("desc"); }
+  };
+
+  const generatePDF = () => {
+    const doc = document.createElement('div');
+    doc.innerHTML = `
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #5c3d2e; }
+        .info { text-align: center; margin-bottom: 20px; font-size: 12px; color: #666; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #f59e0b; color: white; padding: 8px; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f5f5f5; }
+      </style>
+      <h1>Vinayaka Pooja Flowers</h1>
+      <div class="info">
+        <p>Orders Report - ${format(new Date(), "MMMM d, yyyy")}</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Pickup Date</th>
+            <th>Slot</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${paginated.map(o => `
+            <tr>
+              <td>${o.customer_name}</td>
+              <td>${o.phone_number}</td>
+              <td>${o.pickup_date}</td>
+              <td>${o.time_slot}</td>
+              <td>${o.status}</td>
+              <td>${format(new Date(o.created_at), "MMM d, yyyy")}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <p style="margin-top: 20px; font-size: 12px; text-align: right;">Total Records: ${filtered.length}</p>
+    `;
+
+    const printWindow = window.open('', '', 'height=600,width=900');
+    printWindow?.document.write(doc.innerHTML);
+    printWindow?.document.close();
+    printWindow?.print();
+  };
+
+  const exportCSV = () => {
+    const headers = ["Customer Name", "Email", "Phone Number", "Pickup Date", "Time Slot", "Status", "Created Date"];
+    const rows = paginated.map(o => [
+      o.customer_name,
+      o.email,
+      o.phone_number,
+      o.pickup_date,
+      o.time_slot,
+      o.status,
+      format(new Date(o.created_at), "MMM d, yyyy")
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orders-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Orders exported as CSV");
   };
 
   return (
@@ -115,19 +224,35 @@ const Orders = () => {
         </CardContent>
       </Card>
 
+      {/* Export buttons */}
+      <div className="flex gap-2">
+        <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download Filtered Data as PDF
+        </Button>
+        <Button onClick={generatePDF} variant="outline" size="sm" className="gap-2">
+          <Printer className="h-4 w-4" />
+          Print Filtered Data
+        </Button>
+      </div>
+
       {/* Table */}
       <Card className="bg-card shadow-sm overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-brown">Customer</TableHead>
-              <TableHead className="text-brown">Phone</TableHead>
-              <TableHead className="cursor-pointer text-brown" onClick={() => toggleSort("pickup_date")}>
+              <TableHead className="cursor-pointer text-brown hover:bg-muted" onClick={() => toggleSort("customer_name")}>
+                Customer {sortField === "customer_name" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </TableHead>
+              <TableHead className="cursor-pointer text-brown hover:bg-muted" onClick={() => toggleSort("phone_number")}>
+                Phone {sortField === "phone_number" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </TableHead>
+              <TableHead className="cursor-pointer text-brown hover:bg-muted" onClick={() => toggleSort("pickup_date")}>
                 Pickup Date {sortField === "pickup_date" ? (sortDir === "asc" ? "↑" : "↓") : ""}
               </TableHead>
               <TableHead className="text-brown">Slot</TableHead>
               <TableHead className="text-brown">Status</TableHead>
-              <TableHead className="cursor-pointer text-brown" onClick={() => toggleSort("created_at")}>
+              <TableHead className="cursor-pointer text-brown hover:bg-muted" onClick={() => toggleSort("created_at")}>
                 Created {sortField === "created_at" ? (sortDir === "asc" ? "↑" : "↓") : ""}
               </TableHead>
               <TableHead className="text-brown">Actions</TableHead>

@@ -44,13 +44,19 @@ const AdminLogin = () => {
         }
       }
     } else {
+      console.log("Attempting sign in with:", email);
       const { error } = await signIn(email, password);
+      console.log("Sign in result:", { error });
       if (error) {
         setLoading(false);
         setError(error);
       } else {
+        console.log("Sign in successful, navigating...");
         // Wait a bit for auth state to update before navigating
-        setTimeout(() => navigate("/admin/dashboard"), 500);
+        setTimeout(() => {
+          console.log("Navigating to dashboard");
+          navigate("/admin/dashboard");
+        }, 500);
       }
     }
   };

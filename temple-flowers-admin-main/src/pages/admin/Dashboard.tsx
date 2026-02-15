@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Clock, CheckCircle, CalendarDays } from "lucide-react";
@@ -8,6 +9,7 @@ import { format, subDays, startOfDay } from "date-fns";
 const PIE_COLORS = ["hsl(28, 90%, 52%)", "hsl(25, 40%, 20%)", "hsl(140, 45%, 42%)"];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { data: orders = [] } = useQuery({
     queryKey: ["all-orders-dashboard"],
     queryFn: async () => {
@@ -43,11 +45,23 @@ const Dashboard = () => {
   }));
 
   const summaryCards = [
-    { title: "Total Orders", value: total, icon: Package, color: "text-primary" },
-    { title: "Pending", value: pending, icon: Clock, color: "text-saffron-dark" },
-    { title: "Completed", value: completed, icon: CheckCircle, color: "text-success" },
-    { title: "Today's Pickups", value: todayPickups, icon: CalendarDays, color: "text-brown" },
+    { title: "Total Orders", value: total, icon: Package, color: "text-primary", filter: "all" },
+    { title: "Pending", value: pending, icon: Clock, color: "text-saffron-dark", filter: "Pending" },
+    { title: "Completed", value: completed, icon: CheckCircle, color: "text-success", filter: "Completed" },
+    { title: "Today's Pickups", value: todayPickups, icon: CalendarDays, color: "text-brown", filter: "today" },
   ];
+
+  const handleCardClick = (filterType: string) => {
+    const params = new URLSearchParams();
+    if (filterType === "Pending") {
+      params.set("status", "Pending");
+    } else if (filterType === "Completed") {
+      params.set("status", "Completed");
+    } else if (filterType === "today") {
+      params.set("date", todayStr);
+    }
+    navigate(`/admin/orders${params.toString() ? `?${params}` : ""}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -56,7 +70,11 @@ const Dashboard = () => {
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {summaryCards.map((card) => (
-          <Card key={card.title} className="bg-card shadow-sm">
+          <Card 
+            key={card.title} 
+            className="bg-card shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => handleCardClick(card.filter)}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {card.title}

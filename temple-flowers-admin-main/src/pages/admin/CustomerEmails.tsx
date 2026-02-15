@@ -10,6 +10,29 @@ import { toast } from "sonner";
 import { Copy, Download } from "lucide-react";
 import { format } from "date-fns";
 
+const DUMMY_CUSTOMERS = [
+  { email: "rahul.sharma@email.com", name: "Rahul Sharma", count: 3, lastDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "priya.iyer@email.com", name: "Priya Iyer", count: 2, lastDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "amit.patel@email.com", name: "Amit Patel", count: 5, lastDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "anjali.nair@email.com", name: "Anjali Nair", count: 1, lastDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "vikram.singh@email.com", name: "Vikram Singh", count: 4, lastDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "sneha.verma@email.com", name: "Sneha Verma", count: 2, lastDate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "rohan.kapoor@email.com", name: "Rohan Kapoor", count: 6, lastDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "divya.kumar@email.com", name: "Divya Kumar", count: 1, lastDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "arjun.reddy@email.com", name: "Arjun Reddy", count: 3, lastDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "neha.gupta@email.com", name: "Neha Gupta", count: 2, lastDate: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "sanjay.chopra@email.com", name: "Sanjay Chopra", count: 4, lastDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "pooja.bhat@email.com", name: "Pooja Bhat", count: 5, lastDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "harsh.menon@email.com", name: "Harsh Menon", count: 2, lastDate: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "meera.desai@email.com", name: "Meera Desai", count: 3, lastDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "akshay.rao@email.com", name: "Akshay Rao", count: 1, lastDate: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "kavya.pillai@email.com", name: "Kavya Pillai", count: 4, lastDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "nikhil.joshi@email.com", name: "Nikhil Joshi", count: 2, lastDate: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "rashmi.bansal@email.com", name: "Rashmi Bansal", count: 3, lastDate: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "sandeep.bhatt@email.com", name: "Sandeep Bhatt", count: 5, lastDate: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000).toISOString() },
+  { email: "shruti.modi@email.com", name: "Shruti Modi", count: 1, lastDate: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
 const CustomerEmails = () => {
   const [search, setSearch] = useState("");
   const [minOrders, setMinOrders] = useState("all");
@@ -25,7 +48,13 @@ const CustomerEmails = () => {
     },
   });
 
+  // Use dummy data if no real orders exist, otherwise use real customer data
   const customers = useMemo(() => {
+    if (orders.length === 0) {
+      return DUMMY_CUSTOMERS;
+    }
+
+    // If real orders exist, derive customer list from them
     const map = new Map<string, { email: string; name: string; count: number; lastDate: string }>();
     orders.forEach((o) => {
       const existing = map.get(o.email);
