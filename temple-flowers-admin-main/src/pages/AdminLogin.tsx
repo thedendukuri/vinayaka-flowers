@@ -39,16 +39,18 @@ const AdminLogin = () => {
         if (signInError) {
           setError("Account created! Please log in. (You need admin role to access the dashboard)");
         } else {
-          navigate("/admin/dashboard");
+          // Wait a bit for auth state to update
+          setTimeout(() => navigate("/admin/dashboard"), 500);
         }
       }
     } else {
       const { error } = await signIn(email, password);
-      setLoading(false);
       if (error) {
+        setLoading(false);
         setError(error);
       } else {
-        navigate("/admin/dashboard");
+        // Wait a bit for auth state to update before navigating
+        setTimeout(() => navigate("/admin/dashboard"), 500);
       }
     }
   };

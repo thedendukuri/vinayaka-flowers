@@ -26,6 +26,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
+    
+    // If user is not admin, check if ANY admin exists
+    if (!data) {
+      const { count } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "admin");
+      
+      // If no admins exist, make this user an admin
+      if ((count ?? 0) === 0) {
+        await supabase
+          .from("user_roles")
+          .insert([{ user_id: userId, role: "admin" }]);
+        setIsAdmin(true);
+        return;
+      }
+    }
+    
     setIsAdmin(!!data);
   };
 
